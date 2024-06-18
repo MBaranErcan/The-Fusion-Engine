@@ -22,6 +22,15 @@
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\The Fusion Engine.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
+    <None Include="shaders\texture.frag" />
+    <None Include="shaders\texture.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\Graphics\Camera.h" />
+    <ClInclude Include="include\Graphics\Shader.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

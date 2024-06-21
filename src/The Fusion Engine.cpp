@@ -13,6 +13,8 @@
 // Function prototypes
 void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void moveSquare(GLFWwindow* window, glm::mat4& squareModel, GLfloat deltaTime); // Move: 8, 5, 4, 6 (up, down, left, right)
 
 // Settings
@@ -43,13 +45,15 @@ int main()
     GLFWwindow* window = glfwCreateWindow(800, 600, "The Fusion Engine", NULL, NULL);
     if (window == NULL)
     {
-		std::cout << "Failed to create GLFW window" << std::endl;
-		glfwTerminate();
-		return -1;
-	}
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
     glfwMakeContextCurrent(window); // On the calling thread, make the context of the specified window current
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetScrollCallback(window, scroll_callback);
 
     // Load GLAD for OpenGL functions
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
@@ -61,7 +65,7 @@ int main()
     // Camera Settings
     camera.MovementSpeed = cameraSpeed;
 
-    
+
     // Shaders
     Shader shader("shaders/texture.vert", "shaders/texture.frag");
 
@@ -76,9 +80,9 @@ int main()
     };
 
     GLuint indices[] = {
-		0, 1, 3, // first triangle
-		1, 2, 3  // second triangle
-	};
+        0, 1, 3, // first triangle
+        1, 2, 3  // second triangle
+    };
 
     GLuint VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
@@ -115,8 +119,8 @@ int main()
         lastFrame = currentFrameTime;
 
         // Render
-		glClearColor(0.15f, 0.25f, 0.55f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
+        glClearColor(0.15f, 0.25f, 0.55f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         // Process Input
         processInput(window);
@@ -135,11 +139,11 @@ int main()
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
-       
+
         // Swap buffers and poll IO events
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-	}
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
 
 
     glfwTerminate();
@@ -147,7 +151,7 @@ int main()
 }
 
 /* Function definitions */
-
+//-----------------------------------------------------------
 // User input
 void processInput(GLFWwindow* window)
 {
@@ -164,14 +168,42 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
+//-----------------------------------------------------------
 // Function for window-resizing
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-	glViewport(0, 0, width, height);
+    glViewport(0, 0, width, height);
 }
 
+//-----------------------------------------------------------
+// Mouse movement
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (firstMouse)
+    {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // Reversed since y-coordinates range from bottom to top
+	lastX = xpos;
+	lastY = ypos;
+
+	camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+//-----------------------------------------------------------
+// Mouse scroll
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	camera.ProcessMouseScroll(yoffset);
+}
+
+//-----------------------------------------------------------
 // Function to move the square
-void moveSquare(GLFWwindow* window, glm::mat4 &squareModel, GLfloat deltaTime)
+void moveSquare(GLFWwindow* window, glm::mat4& squareModel, GLfloat deltaTime)
 {
     if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
     {
@@ -190,4 +222,3 @@ void moveSquare(GLFWwindow* window, glm::mat4 &squareModel, GLfloat deltaTime)
         squareModel = glm::translate(squareModel, glm::vec3(squareSpeed * deltaTime, 0.0f, 0.0f));
     }
 }
-

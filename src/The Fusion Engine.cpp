@@ -17,6 +17,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void moveSquare(GLFWwindow* window, glm::mat4& squareModel, GLfloat deltaTime); // Move: 8, 5, 4, 6 (up, down, left, right)
 
+
 // Settings
 const GLuint SCR_WIDTH = 800;
 const GLuint SCR_HEIGHT = 600;
@@ -32,6 +33,10 @@ bool firstMouse = true;
 // Time
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+// State keepers
+bool isWireframe = false;
+bool pKeyWasPressed = false;
 
 
 int main()
@@ -70,13 +75,20 @@ int main()
     Shader shader("shaders/texture.vert", "shaders/texture.frag");
 
 
-    // Vertex data
+    // Vertex data (Cube)
     GLfloat vertices[] = {
-        // positions          // texture coords
-        0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f, // top right
-        0.5f, -0.5f, 0.0f,   1.0f, 0.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f, // bottom left
-        -0.5f,  0.5f, 0.0f,   0.0f, 1.0f, 1.0f  // top left
+        // positions          // Color coords
+        // front face
+        0.5f,  0.5f, 0.5f,   1.0f, 1.0f, 0.0f, // top right
+        0.5f, -0.5f, 0.5f,   1.0f, 0.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, 0.5f,   0.0f, 0.0f, 1.0f, // bottom left
+        -0.5f,  0.5f, 0.5f,   0.0f, 1.0f, 1.0f,  // top left
+
+        // back face
+        0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.0f, // top right
+        0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f, // bottom right
+        -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f, // bottom left
+        -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 1.0f  // top left
     };
 
     GLuint indices[] = {
@@ -155,9 +167,11 @@ int main()
 // User input
 void processInput(GLFWwindow* window)
 {
+    // Close window (ESC)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
+    // Camera movement (W, A, S, D)
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -166,6 +180,15 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+
+    // Change polygon mode (P)
+    bool pKeyPressed = glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS;
+    if (pKeyPressed && !pKeyWasPressed)
+    {
+		isWireframe = !isWireframe;
+		glPolygonMode(GL_FRONT_AND_BACK, isWireframe ? GL_LINE : GL_FILL);
+	}
+	pKeyWasPressed = pKeyPressed;
 }
 
 //-----------------------------------------------------------
@@ -200,6 +223,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	camera.ProcessMouseScroll(yoffset);
 }
+
 
 //-----------------------------------------------------------
 // Function to move the square

@@ -67,6 +67,9 @@ int main()
         return -1;
     }
 
+    // Enable depth testing
+    glEnable(GL_DEPTH_TEST);
+
     // Camera Settings
     camera.MovementSpeed = cameraSpeed;
 
@@ -92,8 +95,24 @@ int main()
     };
 
     GLuint indices[] = {
+        // front face
         0, 1, 3, // first triangle
-        1, 2, 3  // second triangle
+        1, 2, 3,  // second triangle
+        // back face
+        4, 5, 7, // first triangle
+        5, 6, 7,  // second triangle
+        // right face
+        0, 1, 4, // first triangle
+        1, 5, 4,  // second triangle
+        // left face
+        2, 3, 6, // first triangle
+        3, 7, 6,  // second triangle
+        // top face
+        0, 3, 4, // first triangle
+        3, 7, 4,  // second triangle
+        // bottom face
+        1, 2, 5, // first triangle
+        2, 6, 5  // second triangle
     };
 
     GLuint VBO, VAO, EBO;
@@ -132,7 +151,7 @@ int main()
 
         // Render
         glClearColor(0.15f, 0.25f, 0.55f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Process Input
         processInput(window);
@@ -149,7 +168,7 @@ int main()
         // Render the square
         shader.setMat4("mvp", mvp);
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
 
 
         // Swap buffers and poll IO events
@@ -171,7 +190,7 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    // Camera movement (W, A, S, D)
+    // Camera movement (W, A, S, D, Space, Shift)
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -180,6 +199,10 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        camera.ProcessKeyboard(UP, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		camera.ProcessKeyboard(DOWN, deltaTime);
 
     // Change polygon mode (P)
     bool pKeyPressed = glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS;

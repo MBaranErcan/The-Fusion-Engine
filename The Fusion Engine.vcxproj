@@ -20,16 +20,23 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\glad.c" />
+    <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\The Fusion Engine.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include="shaders\skybox.frag" />
+    <None Include="shaders\skybox.vert" />
     <None Include="shaders\texture.frag" />
     <None Include="shaders\texture.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Graphics\Camera.h" />
     <ClInclude Include="include\Graphics\Shader.h" />
+    <ClInclude Include="include\Graphics\stb_image.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\block_grass.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

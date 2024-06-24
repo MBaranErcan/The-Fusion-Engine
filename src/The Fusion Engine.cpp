@@ -2,6 +2,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm/glm.hpp>
+#include <glm/glm/gtc/matrix_transform.hpp>
+#include <glm/glm/gtc/type_ptr.hpp>
+#include <Graphics/stb_image.h>
 
 
 #include "Graphics/Camera.h"
@@ -40,19 +43,41 @@ bool isWireframe = false;
 bool pKeyWasPressed = false;
 
 
-// Vertex data
-GLfloat vertices[] =
-{ //     COORDINATES     /        COLORS      /   TexCoord  //
-    -0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Lower left corner
-    -0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,	0.0f, 1.0f, // Upper left corner
-     0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,	1.0f, 1.0f, // Upper right corner
-     0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,	1.0f, 0.0f  // Lower right corner
+// Vertex data (Cube)
+GLfloat vertices[] = {
+    // positions          // Color coords
+    // front face
+    0.5f,  0.5f, 0.5f,   1.0f, 1.0f, 0.0f,	    0.0f, 0.0f, // Lower left corner
+    0.5f, -0.5f, 0.5f,   1.0f, 0.0f, 0.0f,	    0.0f, 1.0f, // Upper left corner
+    -0.5f, -0.5f, 0.5f,   0.0f, 0.0f, 1.0f,	    1.0f, 1.0f, // Upper right corner
+    -0.5f,  0.5f, 0.5f,   0.0f, 1.0f, 1.0f,     1.0f, 0.0f,  // Lower right corner
+
+    // back face
+    0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.0f,	    0.0f, 0.0f, // Lower left corner
+    0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,	    0.0f, 1.0f, // Upper left corner
+    -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,	1.0f, 1.0f, // Upper right corner
+    -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 1.0f, 	1.0f, 0.0f  // Lower right corner
 };
 
-GLuint indices[] =
-{
-    0, 2, 1, // Upper triangle
-    0, 3, 2 // Lower triangle
+GLuint indices[] = {
+    // front face
+    0, 1, 3, // first triangle
+    1, 2, 3,  // second triangle
+    // back face
+    4, 5, 7, // first triangle
+    5, 6, 7,  // second triangle
+    // right face
+    0, 1, 4, // first triangle
+    1, 5, 4,  // second triangle
+    // left face
+    2, 3, 6, // first triangle
+    3, 7, 6,  // second triangle
+    // top face
+    0, 3, 4, // first triangle
+    3, 7, 4,  // second triangle
+    // bottom face
+    1, 2, 5, // first triangle
+    2, 6, 5  // second triangle
 };
 
 

@@ -366,3 +366,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/assets/skybox
+/shaders/skybox.frag
+/shaders/skybox.vert

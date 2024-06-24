@@ -1,11 +1,12 @@
 /* Last modified: 2021-08-15 */
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-
 #include <glm/glm/glm.hpp>
+
 
 #include "Graphics/Camera.h"
 #include "Graphics/Shader.h"
+#include "Graphics/Texture.h"
 
 #include <iostream>
 #include <stdio.h>
@@ -37,6 +38,22 @@ float lastFrame = 0.0f;
 // State keepers
 bool isWireframe = false;
 bool pKeyWasPressed = false;
+
+
+// Vertex data
+GLfloat vertices[] =
+{ //     COORDINATES     /        COLORS      /   TexCoord  //
+    -0.5f, -0.5f, 0.0f,     1.0f, 0.0f, 0.0f,	0.0f, 0.0f, // Lower left corner
+    -0.5f,  0.5f, 0.0f,     0.0f, 1.0f, 0.0f,	0.0f, 1.0f, // Upper left corner
+     0.5f,  0.5f, 0.0f,     0.0f, 0.0f, 1.0f,	1.0f, 1.0f, // Upper right corner
+     0.5f, -0.5f, 0.0f,     1.0f, 1.0f, 1.0f,	1.0f, 0.0f  // Lower right corner
+};
+
+GLuint indices[] =
+{
+    0, 2, 1, // Upper triangle
+    0, 3, 2 // Lower triangle
+};
 
 
 int main()
@@ -78,43 +95,6 @@ int main()
     Shader shader("shaders/texture.vert", "shaders/texture.frag");
 
 
-    // Vertex data (Cube)
-    GLfloat vertices[] = {
-        // positions          // Color coords
-        // front face
-        0.5f,  0.5f, 0.5f,   1.0f, 1.0f, 0.0f, // top right
-        0.5f, -0.5f, 0.5f,   1.0f, 0.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, 0.5f,   0.0f, 0.0f, 1.0f, // bottom left
-        -0.5f,  0.5f, 0.5f,   0.0f, 1.0f, 1.0f,  // top left
-
-        // back face
-        0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.0f, // top right
-        0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f, // bottom right
-        -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f, // bottom left
-        -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 1.0f  // top left
-    };
-
-    GLuint indices[] = {
-        // front face
-        0, 1, 3, // first triangle
-        1, 2, 3,  // second triangle
-        // back face
-        4, 5, 7, // first triangle
-        5, 6, 7,  // second triangle
-        // right face
-        0, 1, 4, // first triangle
-        1, 5, 4,  // second triangle
-        // left face
-        2, 3, 6, // first triangle
-        3, 7, 6,  // second triangle
-        // top face
-        0, 3, 4, // first triangle
-        3, 7, 4,  // second triangle
-        // bottom face
-        1, 2, 5, // first triangle
-        2, 6, 5  // second triangle
-    };
-
     GLuint VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
@@ -133,10 +113,23 @@ int main()
 
 
     // Set vertex attributes
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)0); // The positions
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);                       // Position
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat))); // The colors
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));   // Color
     glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));   // Texture
+    glEnableVertexAttribArray(2);
+
+    //// Unbind VAO, VBO and EBO
+    //glBindVertexArray(0);
+    //glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+
+    // Texture
+    Texture texture1("assets/skybox/CloudyCrown_01_Midday/Textures/CloudyCrown_Midday_Front.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
+    texture1.texUnit(shader, "tex0", 0);
+
 
     // Square model matrix
     glm::mat4 squareModel = glm::mat4(1.0f); // Initialize with identity matrix
@@ -158,12 +151,14 @@ int main()
         moveSquare(window, squareModel, deltaTime);
 
         shader.use();
+        texture1.Bind();
 
         // MVP transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 mvp = projection * view * squareModel;
+//        glm::mat4 mvp = projection * view * squareModel;
+        glm::mat4 mvp = projection * view * model;
 
         // Render the square
         shader.setMat4("mvp", mvp);
@@ -176,7 +171,14 @@ int main()
         glfwPollEvents();
     }
 
+    // De-allocate resources
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteBuffers(1, &EBO);
+    texture1.Delete();
 
+
+    glfwDestroyWindow(window);
     glfwTerminate();
     return 0;
 }

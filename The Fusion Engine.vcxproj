@@ -21,6 +21,8 @@
   <ItemGroup>
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\stb_image.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
     <ClCompile Include="src\The Fusion Engine.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -34,6 +36,7 @@
     <ClInclude Include="include\Graphics\Camera.h" />
     <ClInclude Include="include\Graphics\Shader.h" />
     <ClInclude Include="include\Graphics\stb_image.h" />
+    <ClInclude Include="include\Graphics\Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\block_grass.png" />

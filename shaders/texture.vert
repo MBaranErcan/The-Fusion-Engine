@@ -8,10 +8,12 @@ out vec4 color;
 out vec2 texCoord;
 
 uniform mat4 mvp;
+uniform float scale;
 
 void main()
 {
-	gl_Position = mvp * vec4(aPos, 1.0);
+	vec3 scaledPos = aPos * scale;
+	gl_Position = mvp * vec4(scaledPos, 1.0);
 	color = vec4(aColor, 1.0);
 	texCoord = aTex;
 }

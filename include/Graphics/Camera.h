@@ -70,7 +70,6 @@ public:
 		return glm::lookAt(Position, Position + Front, Up);
 	}
 
-	//
 	void ProcessKeyboard(Camera_Movement direction, float deltaTime)
 	{
 		float velocity = MovementSpeed * deltaTime;

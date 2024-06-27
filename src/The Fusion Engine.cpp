@@ -21,6 +21,9 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void moveSquare(GLFWwindow* window, glm::mat4& squareModel, GLfloat deltaTime); // Move: 8, 5, 4, 6 (up, down, left, right)
 
+/* ----ADD THIS ------*/
+//unsigned int loadTexture(const char* path);
+
 
 // Settings
 const GLuint SCR_WIDTH = 800;
@@ -150,6 +153,8 @@ int main()
     //glBindBuffer(GL_ARRAY_BUFFER, 0);
     //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
+    GLuint skyboxScaleUniLoc = glGetUniformLocation(shader.ID, "scale");
+
 
     // Texture
     Texture texture1("assets/skybox/CloudyCrown_01_Midday/Textures/CloudyCrown_Midday_Front.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
@@ -176,10 +181,14 @@ int main()
         moveSquare(window, squareModel, deltaTime);
 
         shader.use();
+
+        // Scale
+        glUniform1f(skyboxScaleUniLoc, 250.0f);
+
         texture1.Bind();
 
-        // MVP transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        // MVP transformations                                                                                   near,   far
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 500.0f);
         glm::mat4 view = camera.GetViewMatrix();
         glm::mat4 model = glm::mat4(1.0f);
 //        glm::mat4 mvp = projection * view * squareModel;

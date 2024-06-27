@@ -4,12 +4,11 @@
 #include <glm/glm/glm.hpp>
 #include <glm/glm/gtc/matrix_transform.hpp>
 #include <glm/glm/gtc/type_ptr.hpp>
-#include <Graphics/stb_image.h>
-
 
 #include "Graphics/Camera.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Texture.h"
+#include "Graphics/Model.h"
 
 #include <iostream>
 #include <stdio.h>
@@ -19,11 +18,6 @@ void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void moveSquare(GLFWwindow* window, glm::mat4& squareModel, GLfloat deltaTime); // Move: 8, 5, 4, 6 (up, down, left, right)
-
-/* ----ADD THIS ------*/
-//unsigned int loadTexture(const char* path);
-
 
 // Settings
 const GLuint SCR_WIDTH = 800;
@@ -121,6 +115,7 @@ int main()
 
     // Shaders
     Shader shader("shaders/texture.vert", "shaders/texture.frag");
+    Shader skyboxShader("shaders/texture.vert", "shaders/texture.frag");
 
 
     GLuint VBO, VAO, EBO;
@@ -153,7 +148,6 @@ int main()
     //glBindBuffer(GL_ARRAY_BUFFER, 0);
     //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    GLuint skyboxScaleUniLoc = glGetUniformLocation(shader.ID, "scale");
 
 
     // Texture
@@ -161,9 +155,8 @@ int main()
     texture1.texUnit(shader, "tex0", 0);
 
 
-    // Square model matrix
-    glm::mat4 squareModel = glm::mat4(1.0f); // Initialize with identity matrix
-
+    // Models
+    Model model1("assets/backpack/backpack.obj", false);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -178,26 +171,32 @@ int main()
 
         // Process Input
         processInput(window);
-        moveSquare(window, squareModel, deltaTime);
 
-        shader.use();
-
-        // Scale
-        glUniform1f(skyboxScaleUniLoc, 250.0f);
-
+        //Skybox
+        glDepthMask(GL_FALSE);  // close depth mask for skybox
         texture1.Bind();
+        skyboxShader.use();
 
-        // MVP transformations                                                                                   near,   far
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 500.0f);
-        glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 model = glm::mat4(1.0f);
-//        glm::mat4 mvp = projection * view * squareModel;
-        glm::mat4 mvp = projection * view * model;
+        // MVP transformations                                                                                   near, far
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+        
+        // Skybox
+        glm::mat4 viewSkybox = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+        glm::mat4 modelSkybox = glm::scale(glm::mat4(1.0f), glm::vec3(500.0f));
+        glm::mat4 mvpSkybox = projection * viewSkybox * modelSkybox;
+        skyboxShader.setMat4("mvp", mvpSkybox);
 
-        // Render the square
-        shader.setMat4("mvp", mvp);
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
+        glDepthMask(GL_TRUE);  // open depth mask for other objects
+        
+
+        // Backpack model
+        shader.use();
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 mvp = projection * camera.GetViewMatrix() * model;
+        shader.setMat4("mvp", mvp);
+        model1.Draw(shader);
 
 
         // Swap buffers and poll IO events
@@ -281,27 +280,4 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	camera.ProcessMouseScroll(yoffset);
-}
-
-
-//-----------------------------------------------------------
-// Function to move the square
-void moveSquare(GLFWwindow* window, glm::mat4& squareModel, GLfloat deltaTime)
-{
-    if (glfwGetKey(window, GLFW_KEY_8) == GLFW_PRESS)
-    {
-        squareModel = glm::translate(squareModel, glm::vec3(0.0f, squareSpeed * deltaTime, 0.0f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_5) == GLFW_PRESS)
-    {
-        squareModel = glm::translate(squareModel, glm::vec3(0.0f, -squareSpeed * deltaTime, 0.0f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_4) == GLFW_PRESS)
-    {
-        squareModel = glm::translate(squareModel, glm::vec3(-squareSpeed * deltaTime, 0.0f, 0.0f));
-    }
-    if (glfwGetKey(window, GLFW_KEY_6) == GLFW_PRESS)
-    {
-        squareModel = glm::translate(squareModel, glm::vec3(squareSpeed * deltaTime, 0.0f, 0.0f));
-    }
 }

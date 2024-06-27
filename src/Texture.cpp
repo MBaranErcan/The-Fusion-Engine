@@ -3,13 +3,10 @@
 
 Texture::Texture(const char* image, GLenum texType, GLenum slot, GLenum format, GLenum pixelType)
 {
-	// Assign type
 	type = texType;
 
 	int widthImg, heightImg, numChImg;
-
 	stbi_set_flip_vertically_on_load(true); // Flip the image vertically
-
 	unsigned char* bytes = stbi_load(image, &widthImg, &heightImg, &numChImg, 0);
 
 	// Generate texture object
@@ -37,7 +34,6 @@ Texture::Texture(const char* image, GLenum texType, GLenum slot, GLenum format, 
 
 	// Assign texture unit to a texture
 void Texture::texUnit(Shader& shader, const char* uniform, GLuint unit) {
-
 	GLuint texUni = glGetUniformLocation(shader.ID, uniform);
 	shader.use();
 	glUniform1i(texUni, unit);

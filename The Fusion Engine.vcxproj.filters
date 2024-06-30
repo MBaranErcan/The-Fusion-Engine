@@ -39,6 +39,9 @@
     <ClCompile Include="src\Model.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Light.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\texture.vert">
@@ -52,6 +55,12 @@
       <Filter>Custom Shaders</Filter>
     </None>
     <None Include="shaders\skybox.vert">
+      <Filter>Custom Shaders</Filter>
+    </None>
+    <None Include="shaders\light.frag">
+      <Filter>Custom Shaders</Filter>
+    </None>
+    <None Include="shaders\light.vert">
       <Filter>Custom Shaders</Filter>
     </None>
   </ItemGroup>
@@ -72,6 +81,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Graphics\Model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Graphics\Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

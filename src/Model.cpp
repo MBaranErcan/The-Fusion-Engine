@@ -140,7 +140,7 @@ vector<TextureInfo> Model::loadMaterialTextures(aiMaterial* mat, aiTextureType t
 		mat->GetTexture(type, i, &str);
 		bool skip = false;
 		for (unsigned int j = 0; j < textures_loaded.size(); j++) {
-			if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0) {
+			if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0) {	// If texture is already loaded, use it
 				textures.push_back(textures_loaded[j]);
 				skip = true;
 				break;

@@ -1,4 +1,3 @@
-/* Last modified: 2021-08-15 */
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm/glm.hpp>
@@ -9,6 +8,7 @@
 #include "Graphics/Shader.h"
 #include "Graphics/Texture.h"
 #include "Graphics/Model.h"
+#include "Graphics/Light.h"
 
 #include <iostream>
 #include <stdio.h>
@@ -18,6 +18,8 @@ void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+GLuint loadCubemap(std::vector<std::string> faces);
+
 
 // Settings
 const GLuint SCR_WIDTH = 800;
@@ -39,43 +41,22 @@ float lastFrame = 0.0f;
 bool isWireframe = false;
 bool pKeyWasPressed = false;
 
+/*** Lighting ***/
+// Point light
+glm::vec3 lightPos = glm::vec3(0.0f, 3.0f, 3.0f);
+glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f); // Bright white light
 
-// Vertex data (Cube)
-GLfloat vertices[] = {
-    // positions          // Color coords
-    // front face
-    0.5f,  0.5f, 0.5f,   1.0f, 1.0f, 0.0f,	    0.0f, 0.0f, // Lower left corner
-    0.5f, -0.5f, 0.5f,   1.0f, 0.0f, 0.0f,	    0.0f, 1.0f, // Upper left corner
-    -0.5f, -0.5f, 0.5f,   0.0f, 0.0f, 1.0f,	    1.0f, 1.0f, // Upper right corner
-    -0.5f,  0.5f, 0.5f,   0.0f, 1.0f, 1.0f,     1.0f, 0.0f,  // Lower right corner
+// Light attenuation factors
+float constant = 1.0f;
+float linear = 0.09f;
+float quadratic = 0.032f;
 
-    // back face
-    0.5f,  0.5f, -0.5f,   1.0f, 1.0f, 0.0f,	    0.0f, 0.0f, // Lower left corner
-    0.5f, -0.5f, -0.5f,   1.0f, 0.0f, 0.0f,	    0.0f, 1.0f, // Upper left corner
-    -0.5f, -0.5f, -0.5f,   0.0f, 0.0f, 1.0f,	1.0f, 1.0f, // Upper right corner
-    -0.5f,  0.5f, -0.5f,   0.0f, 1.0f, 1.0f, 	1.0f, 0.0f  // Lower right corner
-};
+// Ambient light
+glm::vec3 ambientColor = glm::vec3(0.15f, 0.15f, 0.15f);;
 
-GLuint indices[] = {
-    // front face
-    0, 1, 3, // first triangle
-    1, 2, 3,  // second triangle
-    // back face
-    4, 5, 7, // first triangle
-    5, 6, 7,  // second triangle
-    // right face
-    0, 1, 4, // first triangle
-    1, 5, 4,  // second triangle
-    // left face
-    2, 3, 6, // first triangle
-    3, 7, 6,  // second triangle
-    // top face
-    0, 3, 4, // first triangle
-    3, 7, 4,  // second triangle
-    // bottom face
-    1, 2, 5, // first triangle
-    2, 6, 5  // second triangle
-};
+// Object light properties
+float specularIntensity = 0.5f;
+float shininess = 32.0f;
 
 
 int main()
@@ -106,7 +87,8 @@ int main()
         return -1;
     }
 
-    // Enable depth testing
+    stbi_set_flip_vertically_on_load(true);
+
     glEnable(GL_DEPTH_TEST);
 
     // Camera Settings
@@ -115,48 +97,16 @@ int main()
 
     // Shaders
     Shader shader("shaders/texture.vert", "shaders/texture.frag");
-    Shader skyboxShader("shaders/texture.vert", "shaders/texture.frag");
+  //  Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
+    Shader lightShader("shaders/light.vert", "shaders/light.frag");
 
-
-    GLuint VBO, VAO, EBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-    glGenBuffers(1, &EBO);
-
-    // Bind VAO
-    glBindVertexArray(VAO);
-
-    // Bind and set VBO
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // Bind and set EBO
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-
-    // Set vertex attributes
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);                       // Position
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));   // Color
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));   // Texture
-    glEnableVertexAttribArray(2);
-
-    //// Unbind VAO, VBO and EBO
-    //glBindVertexArray(0);
-    //glBindBuffer(GL_ARRAY_BUFFER, 0);
-    //glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-
-
-    // Texture
-    Texture texture1("assets/skybox/CloudyCrown_01_Midday/Textures/CloudyCrown_Midday_Front.png", GL_TEXTURE_2D, GL_TEXTURE0, GL_RGBA, GL_UNSIGNED_BYTE);
-    texture1.texUnit(shader, "tex0", 0);
+    // LightManager
+    LightManager lightManager;
+    // TODO: Implement a light manager class and test it
 
 
     // Models
-    Model model1("assets/backpack/backpack.obj", false);
+    Model model_Backpack("assets/backpack/backpack.obj", false);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -165,38 +115,43 @@ int main()
         deltaTime = currentFrameTime - lastFrame;
         lastFrame = currentFrameTime;
 
-        // Render
-        glClearColor(0.15f, 0.25f, 0.55f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         // Process Input
         processInput(window);
 
-        //Skybox
-        glDepthMask(GL_FALSE);  // close depth mask for skybox
-        texture1.Bind();
-        skyboxShader.use();
+        // Render
+        glClearColor(0.15f, 0.25f, 0.55f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glEnable(GL_DEPTH_TEST);
 
-        // MVP transformations                                                                                   near, far
+        // MVP transformations     
+        shader.use();
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
-        
-        // Skybox
-        glm::mat4 viewSkybox = glm::mat4(glm::mat3(camera.GetViewMatrix()));
-        glm::mat4 modelSkybox = glm::scale(glm::mat4(1.0f), glm::vec3(500.0f));
-        glm::mat4 mvpSkybox = projection * viewSkybox * modelSkybox;
-        skyboxShader.setMat4("mvp", mvpSkybox);
+        glm::mat4 view = camera.GetViewMatrix();
+        shader.setMat4("projection", projection);
+        shader.setMat4("view", view);
 
-        glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(GLuint), GL_UNSIGNED_INT, 0);
-        glDepthMask(GL_TRUE);  // open depth mask for other objects
-        
+        // Shader uniforms
+        shader.setVec3("lightPos", lightPos);
+        shader.setVec3("lightColor", lightColor);
+        shader.setFloat("constant", constant);
+        shader.setFloat("linear", linear);
+        shader.setFloat("quadratic", quadratic);
+        shader.setVec3("ambientColor", ambientColor);
+        shader.setVec3("viewPos", camera.Position);
+        shader.setFloat("specularIntensity", specularIntensity);
+        shader.setFloat("shininess", shininess);
 
         // Backpack model
-        shader.use();
-        glm::mat4 model = glm::mat4(1.0f);
-        glm::mat4 mvp = projection * camera.GetViewMatrix() * model;
-        shader.setMat4("mvp", mvp);
-        model1.Draw(shader);
+        glm::mat4 modelBackpack = glm::mat4(1.0f);
+        modelBackpack = glm::translate(modelBackpack, glm::vec3(0.0f, 0.0f, 0.0f));
+        modelBackpack = glm::scale(modelBackpack, glm::vec3(1.0f, 1.0f, 1.0f));
+        shader.setMat4("model", modelBackpack);
+        model_Backpack.Draw(shader);
+
+        lightShader.use();
+
+        // Send lights to shader
+        //dirLight.SendToShader(lightShader, "dirLight");
 
 
         // Swap buffers and poll IO events
@@ -205,10 +160,7 @@ int main()
     }
 
     // De-allocate resources
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-    texture1.Delete();
+
 
 
     glfwDestroyWindow(window);
@@ -280,4 +232,36 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	camera.ProcessMouseScroll(yoffset);
+}
+
+//-----------------------------------------------------------
+GLuint loadCubemap(std::vector<std::string> faces)
+{
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
+
+    int width, height, nrChannels;
+    for (GLuint i = 0; i < faces.size(); i++)
+    {
+        unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
+        if (data)
+        {
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
+                0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            stbi_image_free(data);
+        }
+        else
+        {
+            std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
+            stbi_image_free(data);
+        }
+    }
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+    return textureID;
 }

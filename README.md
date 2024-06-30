@@ -1,5 +1,7 @@
 # The Fusion Engine
 
-Here is the result so far (with no proper lightning)
+Added not-so-proper lightning.
 
-![image](https://github.com/MBaranErcan/The-Fusion-Engine/assets/102927124/84dff80a-ee6d-45a0-91da-b528cebad958)
+![The_Fusion_Engine_tnlV8D3XZ8](https://github.com/MBaranErcan/The-Fusion-Engine/assets/102927124/28644046-6790-435a-b590-aaebe340ccbe)
+
+A more generic lightning shader coming soon...

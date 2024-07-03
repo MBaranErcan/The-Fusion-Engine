@@ -10,6 +10,8 @@
 #include "Graphics/Model.h"
 #include "Graphics/Light.h"
 
+#include <reusable/Cube.h>
+
 #include <iostream>
 #include <stdio.h>
 
@@ -18,8 +20,6 @@ void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-GLuint loadCubemap(std::vector<std::string> faces);
-
 
 // Settings
 const GLuint SCR_WIDTH = 800;
@@ -41,22 +41,9 @@ float lastFrame = 0.0f;
 bool isWireframe = false;
 bool pKeyWasPressed = false;
 
-/*** Lighting ***/
-// Point light
-glm::vec3 lightPos = glm::vec3(0.0f, 3.0f, 3.0f);
-glm::vec3 lightColor = glm::vec3(1.0f, 1.0f, 1.0f); // Bright white light
-
-// Light attenuation factors
-float constant = 1.0f;
-float linear = 0.09f;
-float quadratic = 0.032f;
-
-// Ambient light
-glm::vec3 ambientColor = glm::vec3(0.15f, 0.15f, 0.15f);;
-
-// Object light properties
-float specularIntensity = 0.5f;
-float shininess = 32.0f;
+// Global ambient light
+glm::vec3 globalAmbientColor = glm::vec3(1.0f, 1.0f, 1.0f);
+float globalAmbientStrength = 0.05;
 
 
 int main()
@@ -89,20 +76,32 @@ int main()
 
     stbi_set_flip_vertically_on_load(true);
 
-    glEnable(GL_DEPTH_TEST);
-
     // Camera Settings
     camera.MovementSpeed = cameraSpeed;
 
+    // OpenGL Settings
+    glEnable(GL_DEPTH_TEST);
+
 
     // Shaders
-    Shader shader("shaders/texture.vert", "shaders/texture.frag");
-  //  Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
-    Shader lightShader("shaders/light.vert", "shaders/light.frag");
+    Shader shader("shaders/light.vert", "shaders/light.frag");
+ //   Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
+
 
     // LightManager
     LightManager lightManager;
-    // TODO: Implement a light manager class and test it
+    // DirLight params:     glm::vec3 color, glm::vec3 direction
+    // PointLight params:   glm::vec3 color, glm::vec3 position, float constant, float linear, float quadratic
+    // SpotLight params:    glm::vec3 color, glm::vec3 position, glm::vec3 direction, float cutOff, float outerCutOff
+     
+    lightManager.addLight(std::make_shared<DirectionalLight>(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(-0.2f, -1.0f, -0.3f)));
+    
+    lightManager.addLight(std::make_shared<PointLight>(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(5.0f, 2.0f, -2.0f),    1.0f, 0.09f, 0.032f));
+    lightManager.addLight(std::make_shared<PointLight>(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(2.5f, 3.0f, -6.0f),    1.0f, 0.09f, 0.032f));
+    lightManager.addLight(std::make_shared<PointLight>(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(10.0f, -1.0f, -10.0f), 1.0f, 0.09f, 0.032f));
+    lightManager.addLight(std::make_shared<PointLight>(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, -3.0f),   1.0f, 0.09f, 0.032f));
+    
+    lightManager.addLight(std::make_shared<SpotLight>(glm::vec3(1.0f, 1.0f, 1.0f), camera.Position, camera.Front, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f))));
 
 
     // Models
@@ -118,41 +117,56 @@ int main()
         // Process Input
         processInput(window);
 
-        // Render
         glClearColor(0.15f, 0.25f, 0.55f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_DEPTH_TEST);
 
-        // MVP transformations     
+
+        // Activate default shader
         shader.use();
+
+        // Camera and transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
         glm::mat4 view = camera.GetViewMatrix();
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
 
-        // Shader uniforms
-        shader.setVec3("lightPos", lightPos);
-        shader.setVec3("lightColor", lightColor);
-        shader.setFloat("constant", constant);
-        shader.setFloat("linear", linear);
-        shader.setFloat("quadratic", quadratic);
-        shader.setVec3("ambientColor", ambientColor);
+        // Camera position
         shader.setVec3("viewPos", camera.Position);
-        shader.setFloat("specularIntensity", specularIntensity);
-        shader.setFloat("shininess", shininess);
 
+        // Draw objects
         // Backpack model
+        shader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
         glm::mat4 modelBackpack = glm::mat4(1.0f);
-        modelBackpack = glm::translate(modelBackpack, glm::vec3(0.0f, 0.0f, 0.0f));
+        modelBackpack = glm::translate(modelBackpack, glm::vec3(0.0f, 0.0f, -5.0f));
         modelBackpack = glm::scale(modelBackpack, glm::vec3(1.0f, 1.0f, 1.0f));
         shader.setMat4("model", modelBackpack);
         model_Backpack.Draw(shader);
 
-        lightShader.use();
+        // Lights
+        int dirLightCount = 0;
+        int pointLightCount = 0;
+        int spotLightCount = 0;
 
-        // Send lights to shader
-        //dirLight.SendToShader(lightShader, "dirLight");
+        // Global ambient light
+        shader.setVec3("globalAmbientColor", globalAmbientColor);
+        shader.setFloat("globalAmbientStrength", globalAmbientStrength);
 
+        // For each light in the lightManager, check if it is a DirectionalLight, PointLight or SpotLight
+        for (auto& light : lightManager.lights) {
+            if (auto dl = std::dynamic_pointer_cast<DirectionalLight>(light)) {
+                dl->SendToShader(shader, "dirLights[" + std::to_string(dirLightCount++) + "]");
+            }
+            else if (auto pl = std::dynamic_pointer_cast<PointLight>(light)) {
+                pl->SendToShader(shader, "pointLights[" + std::to_string(pointLightCount++) + "]");
+            }
+            else if (auto sl = std::dynamic_pointer_cast<SpotLight>(light)) {
+                sl->SendToShader(shader, "spotLights[" + std::to_string(spotLightCount++) + "]");
+            }
+        }
+
+        shader.setInt("numDirLights", dirLightCount);
+        shader.setInt("numPointLights", pointLightCount);
+        shader.setInt("numSpotLights", spotLightCount);
 
         // Swap buffers and poll IO events
         glfwSwapBuffers(window);
@@ -232,36 +246,4 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	camera.ProcessMouseScroll(yoffset);
-}
-
-//-----------------------------------------------------------
-GLuint loadCubemap(std::vector<std::string> faces)
-{
-    GLuint textureID;
-    glGenTextures(1, &textureID);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-
-    int width, height, nrChannels;
-    for (GLuint i = 0; i < faces.size(); i++)
-    {
-        unsigned char* data = stbi_load(faces[i].c_str(), &width, &height, &nrChannels, 0);
-        if (data)
-        {
-            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i,
-                0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-            stbi_image_free(data);
-        }
-        else
-        {
-            std::cout << "Cubemap texture failed to load at path: " << faces[i] << std::endl;
-            stbi_image_free(data);
-        }
-    }
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    return textureID;
 }

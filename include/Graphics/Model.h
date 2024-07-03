@@ -25,7 +25,7 @@ class Model
 {
 	public:
 
-		vector<TextureInfo> textures_loaded;
+		vector<Texture> textures_loaded;
 		vector<Mesh> meshes;
 		string directory;
 		bool gammaCorrection;
@@ -44,5 +44,5 @@ class Model
 
 		Mesh processMesh(aiMesh* mesh, const aiScene* scene);
 
-		vector<TextureInfo> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
+		vector<Texture> loadMaterialTextures(aiMaterial* mat, aiTextureType type, string typeName);
 };

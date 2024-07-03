@@ -1,9 +1,7 @@
 #include "Graphics/Texture.h"
 
-
 Texture::Texture(const char* image, GLenum texType, GLenum slot, GLenum format, GLenum pixelType)
-{
-	type = texType;
+	: type(texType), path(image) {
 
 	int widthImg, heightImg, numChImg;
 	stbi_set_flip_vertically_on_load(true); // Flip the image vertically
@@ -29,27 +27,28 @@ Texture::Texture(const char* image, GLenum texType, GLenum slot, GLenum format, 
 	// Free resources
 	stbi_image_free(bytes);
 	glBindTexture(texType, 0);
-
 }
 
-	// Assign texture unit to a texture
+Texture::Texture()
+	: ID(0), type(GL_TEXTURE_2D), path(""), unit(0) {}
+
+
+// Assign texture unit to a texture
 void Texture::texUnit(Shader& shader, const char* uniform, GLuint unit) {
 	GLuint texUni = glGetUniformLocation(shader.ID, uniform);
 	shader.use();
 	glUniform1i(texUni, unit);
 }
 
-	// Bind the texture
 void Texture::Bind() {
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(type, ID);
 }
 
-	// Unbind the texture
 void Texture::Unbind() {
 	glBindTexture(type, 0);
 }
 
-	// Delete the texture
 void Texture::Delete() {
 		glDeleteTextures(1, &ID);
 }

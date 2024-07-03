@@ -2,6 +2,7 @@
 
 #include <glad/glad.h>
 #include <Graphics/stb_image.h>
+#include <string>
 
 #include "Graphics/Shader.h"
 
@@ -10,7 +11,12 @@ class Texture
 public:
 	GLuint ID;
 	GLenum type;
-	Texture(const char* image, GLenum textType, GLenum slot, GLenum format, GLenum pixelType);
+	std::string textureType;
+	std::string path;
+	GLuint unit;
+
+	Texture(const char* image, GLenum texType, GLenum slot, GLenum format, GLenum pixelType);
+	Texture();
 
 	// Assign texture unit to a texture
 	void texUnit(Shader& shader, const char* uniform, GLuint unit);

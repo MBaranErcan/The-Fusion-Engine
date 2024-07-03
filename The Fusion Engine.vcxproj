@@ -23,6 +23,7 @@
     <ClCompile Include="src\Light.cpp" />
     <ClCompile Include="src\Mesh.cpp" />
     <ClCompile Include="src\Model.cpp" />
+    <ClCompile Include="src\reusable\Cube.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\stb_image.cpp" />
     <ClCompile Include="src\Texture.cpp" />
@@ -45,9 +46,7 @@
     <ClInclude Include="include\Graphics\Shader.h" />
     <ClInclude Include="include\Graphics\stb_image.h" />
     <ClInclude Include="include\Graphics\Texture.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\block_grass.png" />
+    <ClInclude Include="include\reusable\Cube.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

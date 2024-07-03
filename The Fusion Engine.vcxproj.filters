@@ -16,6 +16,12 @@
     <Filter Include="Custom Shaders">
       <UniqueIdentifier>{a7864c1c-102d-4e7e-b72d-65da6d7f41ff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\Reusable Objects">
+      <UniqueIdentifier>{237c9920-273a-412b-bf58-c03bfe12ad28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Reusable objects">
+      <UniqueIdentifier>{11598490-eb7e-430b-8b56-c2ef8a760b1b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\The Fusion Engine.cpp">
@@ -41,6 +47,9 @@
     </ClCompile>
     <ClCompile Include="src\Light.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\reusable\Cube.cpp">
+      <Filter>Source Files\Reusable objects</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -86,10 +95,8 @@
     <ClInclude Include="include\Graphics\Light.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="..\..\block_grass.png">
-      <Filter>Resource Files</Filter>
-    </Image>
+    <ClInclude Include="include\reusable\Cube.h">
+      <Filter>Header Files\Reusable Objects</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

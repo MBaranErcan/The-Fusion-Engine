@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <map>
 
 class Shader
 {
@@ -41,7 +42,14 @@ public:
 
     void setMat4(const std::string& name, const glm::mat4& mat) const;
 
+    // Caching uniform locations
+    int getUniformLocation(const std::string& name);
+
+
 private:
+
+    // 
+    std::map<std::string, int> uniformLocationCache;
 
     void checkCompileErrors(GLuint shader, std::string type);
 

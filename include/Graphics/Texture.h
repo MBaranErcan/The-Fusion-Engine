@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <Graphics/stb_image.h>
 #include <string>
+#include <vector>
 
 #include "Graphics/Shader.h"
 
@@ -30,4 +31,6 @@ public:
 	// Delete the texture
 	void Delete();
 
+	// load CubeMap
+	static unsigned int loadCubemap(std::vector<std::string> faces);
 };

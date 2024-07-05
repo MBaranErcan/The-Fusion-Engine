@@ -53,12 +53,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\texture.vert">
-      <Filter>Custom Shaders</Filter>
-    </None>
-    <None Include="shaders\texture.frag">
-      <Filter>Custom Shaders</Filter>
-    </None>
     <None Include=".gitignore" />
     <None Include="shaders\skybox.frag">
       <Filter>Custom Shaders</Filter>
@@ -66,10 +60,10 @@
     <None Include="shaders\skybox.vert">
       <Filter>Custom Shaders</Filter>
     </None>
-    <None Include="shaders\light.frag">
+    <None Include="shaders\default.frag">
       <Filter>Custom Shaders</Filter>
     </None>
-    <None Include="shaders\light.vert">
+    <None Include="shaders\default.vert">
       <Filter>Custom Shaders</Filter>
     </None>
   </ItemGroup>

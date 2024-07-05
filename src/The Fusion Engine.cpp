@@ -45,7 +45,6 @@ bool pKeyWasPressed = false;
 glm::vec3 globalAmbientColor = glm::vec3(1.0f, 1.0f, 1.0f);
 float globalAmbientStrength = 0.05;
 
-
 int main()
 {
     glfwInit();
@@ -84,8 +83,8 @@ int main()
 
 
     // Shaders
-    Shader shader("shaders/light.vert", "shaders/light.frag");
- //   Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
+    Shader shader("shaders/default.vert", "shaders/default.frag");
+    Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
 
 
     // LightManager
@@ -107,6 +106,18 @@ int main()
     // Models
     Model model_Backpack("assets/backpack/backpack.obj", false);
 
+    // Skybox
+    Cube* skyboxCube = new Cube(true);
+    std::vector<std::string> faces = {
+        "assets/skybox II/right.jpg",
+        "assets/skybox II/left.jpg",
+        "assets/skybox II/top.jpg",
+        "assets/skybox II/bottom.jpg",
+        "assets/skybox II/front.jpg",
+        "assets/skybox II/back.jpg"
+    };
+    unsigned int skyboxTexture = Texture::loadCubemap(faces);
+
     while (!glfwWindowShouldClose(window))
     {
         // Time
@@ -120,13 +131,30 @@ int main()
         glClearColor(0.15f, 0.25f, 0.55f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-
-        // Activate default shader
-        shader.use();
-
         // Camera and transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
         glm::mat4 view = camera.GetViewMatrix();
+        glm::mat4 viewSkybox = glm::mat4(glm::mat3(camera.GetViewMatrix()));
+
+
+        // Skybox
+        // Activate skybox shader
+        glDepthFunc(GL_LEQUAL);
+        skyboxShader.use();
+        skyboxShader.setInt("skybox", 0);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+
+        skyboxShader.setMat4("projection", projection);
+        skyboxShader.setMat4("view", viewSkybox);
+        skyboxCube->Draw();
+
+        
+        // Back to default depth function
+        glDepthFunc(GL_LESS);
+
+        // Activate default shader
+        shader.use();
         shader.setMat4("projection", projection);
         shader.setMat4("view", view);
 
@@ -135,7 +163,7 @@ int main()
 
         // Draw objects
         // Backpack model
-        shader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+        shader.setVec3("objectColor", 1.0f, 0.5f, 0.5f);
         glm::mat4 modelBackpack = glm::mat4(1.0f);
         modelBackpack = glm::translate(modelBackpack, glm::vec3(0.0f, 0.0f, -5.0f));
         modelBackpack = glm::scale(modelBackpack, glm::vec3(1.0f, 1.0f, 1.0f));
@@ -168,13 +196,14 @@ int main()
         shader.setInt("numPointLights", pointLightCount);
         shader.setInt("numSpotLights", spotLightCount);
 
+
+
         // Swap buffers and poll IO events
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
     // De-allocate resources
-
+    delete skyboxCube;
 
 
     glfwDestroyWindow(window);

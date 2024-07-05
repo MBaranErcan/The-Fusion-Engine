@@ -31,12 +31,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
-    <None Include="shaders\light.frag" />
-    <None Include="shaders\light.vert" />
+    <None Include="shaders\default.frag" />
+    <None Include="shaders\default.vert" />
     <None Include="shaders\skybox.frag" />
     <None Include="shaders\skybox.vert" />
-    <None Include="shaders\texture.frag" />
-    <None Include="shaders\texture.vert" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Graphics\Camera.h" />

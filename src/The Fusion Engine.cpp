@@ -103,20 +103,13 @@ int main()
     lightManager.addLight(std::make_shared<SpotLight>(glm::vec3(1.0f, 1.0f, 1.0f), camera.Position, camera.Front, glm::cos(glm::radians(12.5f)), glm::cos(glm::radians(15.0f))));
 
 
-    // Models
-    Model model_Backpack("assets/backpack/backpack.obj", false);
-
     // Skybox
     Cube* skyboxCube = new Cube(true);
-    std::vector<std::string> faces = {
-        "assets/skybox II/right.jpg",
-        "assets/skybox II/left.jpg",
-        "assets/skybox II/top.jpg",
-        "assets/skybox II/bottom.jpg",
-        "assets/skybox II/front.jpg",
-        "assets/skybox II/back.jpg"
-    };
-    unsigned int skyboxTexture = Texture::loadCubemap(faces);
+    std::string pathToSkybox = "assets/skybox II/";
+    unsigned int skyboxTexture = Texture::loadCubemap(pathToSkybox, "jpg");
+
+    // Models
+    Model model_Backpack("assets/backpack/backpack.obj", false);
 
     while (!glfwWindowShouldClose(window))
     {

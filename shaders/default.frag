@@ -88,31 +88,6 @@ void main() {
     fragColor = vec4(litColor + specular, texColor.a);
 }
 
-/* old
-void main() {
-    vec3 norm = normalize(normal);
-    vec3 viewDir = normalize(viewPos - fragPos);
-    
-    vec3 result = vec3(0.0);
-
-    for (int i = 0; i < numDirLights; i++) {
-        result += CalculateDirectionalLight(dirLights[i], norm, viewDir);
-    }
-
-    for (int i = 0; i < numPointLights; i++) {
-        result += CalculatePointLight(pointLights[i], norm, fragPos, viewDir);
-    }
-
-    for (int i = 0; i < numSpotLights; i++) {
-        result += CalculateSpotLight(spotLights[i], norm, fragPos, viewDir);
-    }
-
-    vec4 texColor = texture(texture_diffuse1, texCoord);
-    vec3 litColor = result * objectColor * texColor.rgb;
-    fragColor = vec4(litColor, texColor.a); // Preserve the texture's original alpha
-}
-*/
-
 // Directional light
 vec3 CalculateDirectionalLight(DirectionalLight light, vec3 normal, vec3 viewDir) {
     vec3 lightDir = normalize(-light.direction);

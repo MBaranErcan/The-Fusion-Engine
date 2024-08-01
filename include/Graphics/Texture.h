@@ -33,4 +33,5 @@ public:
 
 	// load CubeMap
 	static unsigned int loadCubemap(std::vector<std::string> faces);
+	static unsigned int loadCubemap(std::string path, std::string pictureType = "png");
 };
